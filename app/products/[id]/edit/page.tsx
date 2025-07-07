@@ -14,6 +14,18 @@ interface Product {
   image: string | null
 }
 
+export async function generateStaticParams() {
+  // Import supabase dynamically to avoid client-side bundle issues
+  const { createClient } = await import('@supabase/supabase-js')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+  const { data, error } = await supabase.from('products').select('id')
+  if (error) throw error
+  return data.map((product: { id: string }) => ({ id: product.id }))
+}
+
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const { user, loading } = useAuth()
   const router = useRouter()
